@@ -27,8 +27,6 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.SocketException;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -194,6 +192,10 @@ public class MainActivity extends AppCompatActivity{
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+
+                int updateUI_count = 0;
+                int updatechart_count = 0;
+
                 while(isRun){
                     try {
                         ds.receive(dp_receive);
@@ -207,13 +209,28 @@ public class MainActivity extends AppCompatActivity{
                     heartrate = Integer.parseInt(strArr[2]);
                     temperature = Float.parseFloat(strArr[3]);
 
-                    setData(i,ECG);
-                    chart.invalidate();
-                    i++;
+                    setData(i++,ECG);
 
-                    Message message = new Message();
-                    message.what = CHANGE_TEMP;
-                    handler.sendMessage(message);
+                    //当发送速率为每秒50点时，每收到5点刷新一次，帧率10fps
+                    if(updatechart_count > 5){
+                        chart.invalidate();
+                        updatechart_count = 0;
+                    }
+                    else{
+                        updatechart_count++;
+                    }
+
+                    //当发送速率为每秒50点时，每收到50点刷新一次，帧率1fps
+                    if(updateUI_count > 50){
+                        Message message = new Message();
+                        message.what = CHANGE_TEMP;
+                        handler.sendMessage(message);
+                        updateUI_count = 0;
+                    }
+                    else{
+                        updateUI_count++;
+                    }
+
                 }
                 ds.close();
             }
@@ -229,11 +246,21 @@ public class MainActivity extends AppCompatActivity{
             if (msg.what == CHANGE_TEMP) {
                 temp.setText(Float.toString(temperature));
                 rate.setText(Integer.toString(heartrate));
-                if(heartrate>37.3){
-                    rate.setTextColor(Color.parseColor("#FE4C40"));
+                if(temperature>37.3){
+                    temp.setTextColor(Color.parseColor("#FE4C40"));
                 }
                 else{
-                    rate.setTextColor(Color.parseColor("#000000"));
+                    temp.setTextColor(Color.parseColor("#44B5A1"));
+                }
+
+                if(heartrate < 110){
+                    rate.setTextColor(Color.parseColor("#44B5A1"));
+                }
+                else if(heartrate < 150){
+                    rate.setTextColor(Color.parseColor("#f17c67"));
+                }
+                else{
+                    rate.setTextColor(Color.parseColor("#FE4C40"));
                 }
             }
         }
