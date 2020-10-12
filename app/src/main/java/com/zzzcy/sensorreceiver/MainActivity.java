@@ -11,6 +11,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.XAxis;
@@ -42,10 +43,9 @@ public class MainActivity extends AppCompatActivity{
     private float temperature;
 
     private int i=0;
-    private boolean isRun = true;
+    private boolean isRun = false;
 
     private static final int CHANGE_TEMP = 1;
-    private static final int CHANGE_HEARTRATE = 2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,8 +75,16 @@ public class MainActivity extends AppCompatActivity{
             public void onClick(View view) {
 //                timer.schedule(task, 0,100);
                 try {
-                    isRun = true;
-                    wifitest();
+                    if(!isRun){
+                        isRun = true;
+                        Toast.makeText(MainActivity.this,"打开接收",Toast.LENGTH_SHORT).show();
+                        Log.i("TAG:","打开接收通道");
+                        wifitest();
+                    }
+                    else{
+                        Toast.makeText(MainActivity.this,"程序已经在运行了",Toast.LENGTH_SHORT).show();
+                        Log.i("TAG:","重复打开接收通道");
+                    }
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -86,6 +94,8 @@ public class MainActivity extends AppCompatActivity{
             @Override
             public void onClick(View view) {
                 isRun = false;
+                Toast.makeText(MainActivity.this,"关闭接收",Toast.LENGTH_SHORT).show();
+                Log.i("TAG:","关闭接收通道");
             }
         });
 
@@ -118,7 +128,6 @@ public class MainActivity extends AppCompatActivity{
 
         chart.getAxisRight().setEnabled(false);
         chart.getLegend().setEnabled(false);
-
 
     }
 
@@ -220,6 +229,12 @@ public class MainActivity extends AppCompatActivity{
             if (msg.what == CHANGE_TEMP) {
                 temp.setText(Float.toString(temperature));
                 rate.setText(Integer.toString(heartrate));
+                if(heartrate>37.3){
+                    rate.setTextColor(Color.parseColor("#FE4C40"));
+                }
+                else{
+                    rate.setTextColor(Color.parseColor("#000000"));
+                }
             }
         }
     };
